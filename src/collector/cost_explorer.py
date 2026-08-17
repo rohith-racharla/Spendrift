@@ -1,9 +1,21 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from dataclasses import dataclass
+from datetime import date
+from decimal import Decimal
 from typing import Any
 
 import boto3
+
+@dataclass(frozen=True)
+class DailyServiceCost:
+    """Normalized daily AWS service cost."""
+
+    date: date
+    service: str
+    cost: Decimal
+    currency: str
+    estimated: bool
 
 
 class CostExplorerClient:
@@ -37,13 +49,33 @@ class CostExplorerClient:
         return response
 
 
-def yesterday() -> date:
-    """Return yesterday's date."""
+def normalize_response(
+    response: dict[str, Any],
+) -> list[DailyServiceCost]:
+    """Convert a Cost Explorer response into normalized records."""
 
-    return date.today() - timedelta(days=1)
+    records: list[DailyServiceCost] = []
 
+    for result in response.get("ResultsByTime", []):
+        period_start = date.fromisoformat(
+            result["TimePeriod"]["Start"]
+        )
 
-def today() -> date:
-    """Return today's date."""
+        estimated = result.get("Estimated", False)
 
-    return date.today()
+        for group in result.get("Groups", []):
+            service = group["Keys"][0]
+
+            metric = group["Metrics"]["UnblendedCost"]
+
+            records.append(
+                DailyServiceCost(
+                    date=period_start,
+                    service=service,
+                    cost=Decimal(metric["Amount"]),
+                    currency=metric["Unit"],
+                    estimated=estimated,
+                )
+            )
+
+    return records
