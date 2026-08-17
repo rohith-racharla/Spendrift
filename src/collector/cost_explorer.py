@@ -29,24 +29,45 @@ class CostExplorerClient:
         start_date: date,
         end_date: date,
     ) -> dict[str, Any]:
-        """Retrieve daily AWS costs grouped by service."""
+        """Retrieve daily AWS costs grouped by service.
 
-        response = self.client.get_cost_and_usage(
-            TimePeriod={
+        Handles pagination returned by the Cost Explorer API.
+        """
+
+        request = {
+            "TimePeriod": {
                 "Start": start_date.isoformat(),
                 "End": end_date.isoformat(),
             },
-            Granularity="DAILY",
-            Metrics=["UnblendedCost"],
-            GroupBy=[
+            "Granularity": "DAILY",
+            "Metrics": ["UnblendedCost"],
+            "GroupBy": [
                 {
                     "Type": "DIMENSION",
                     "Key": "SERVICE",
                 }
             ],
-        )
+        }
 
-        return response
+        all_results: list[dict[str, Any]] = []
+        next_page_token: str | None = None
+
+        while True:
+            if next_page_token:
+                request["NextPageToken"] = next_page_token
+
+            response = self.client.get_cost_and_usage(**request)
+
+            all_results.extend(response.get("ResultsByTime", []))
+
+            next_page_token = response.get("NextPageToken")
+
+            if not next_page_token:
+                break
+
+        return {
+            "ResultsByTime": all_results,
+        }
 
 
 def normalize_response(

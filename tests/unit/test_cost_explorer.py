@@ -5,7 +5,6 @@ from decimal import Decimal
 from src.collector.cost_explorer import CostExplorerClient
 from src.collector.cost_explorer import normalize_response
 
-
 def test_get_daily_service_costs() -> None:
     mock_client = Mock()
 
@@ -43,6 +42,53 @@ def test_get_daily_service_costs() -> None:
     ]["Amount"] == "42.50"
 
     mock_client.get_cost_and_usage.assert_called_once()
+
+
+def test_get_daily_service_costs_handles_pagination() -> None:
+    mock_client = Mock()
+
+    mock_client.get_cost_and_usage.side_effect = [
+        {
+            "ResultsByTime": [
+                {
+                    "TimePeriod": {
+                        "Start": "2026-08-12",
+                        "End": "2026-08-13",
+                    },
+                    "Groups": [],
+                }
+            ],
+            "NextPageToken": "page-2",
+        },
+        {
+            "ResultsByTime": [
+                {
+                    "TimePeriod": {
+                        "Start": "2026-08-13",
+                        "End": "2026-08-14",
+                    },
+                    "Groups": [],
+                }
+            ]
+        },
+    ]
+
+    client = CostExplorerClient(client=mock_client)
+
+    result = client.get_daily_service_costs(
+        start_date=date(2026, 8, 12),
+        end_date=date(2026, 8, 14),
+    )
+
+    assert len(result["ResultsByTime"]) == 2
+
+    assert mock_client.get_cost_and_usage.call_count == 2
+
+    first_call = mock_client.get_cost_and_usage.call_args_list[0]
+    second_call = mock_client.get_cost_and_usage.call_args_list[1]
+
+    assert "NextPageToken" not in first_call.kwargs
+    assert second_call.kwargs["NextPageToken"] == "page-2"
 
 
 def test_normalize_response() -> None:
