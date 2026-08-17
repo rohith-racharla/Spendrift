@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aws-cost-anomaly-detector"
+version = "0.1.0"
+description = "AWS cloud cost anomaly detector for FinOps"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40,<2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0,<10.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
