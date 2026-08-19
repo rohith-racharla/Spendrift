@@ -12,3 +12,13 @@ output "collector_log_group" {
   description = "CloudWatch log group for the cost collector."
   value       = aws_cloudwatch_log_group.collector.name
 }
+
+output "collector_lambda_function_name" {
+  description = "Name of the cost collector Lambda function"
+  value       = aws_lambda_function.collector.function_name
+}
+
+output "collector_lambda_arn" {
+  description = "ARN of the cost collector Lambda function"
+  value       = aws_lambda_function.collector.arn
+}
