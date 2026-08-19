@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket       = "${var.project_name}-tfstate"
+    bucket       = "aws-cost-anomaly-detector-tfstate"
     key          = "dev/terraform.tfstate"
-    region       = var.region
-    profile      = var.aws_profile
+    region       = "us-east-1"
+    profile      = "finops-dev"
     use_lockfile = true
   }
 }
