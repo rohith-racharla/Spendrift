@@ -16,6 +16,9 @@ dev = [
     "pytest>=9.0,<10.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
