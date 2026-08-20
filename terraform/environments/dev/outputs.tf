@@ -22,3 +22,8 @@ output "collector_lambda_arn" {
   description = "ARN of the cost collector Lambda function"
   value       = aws_lambda_function.collector.arn
 }
+
+output "daily_cost_collection_rule" {
+  description = "EventBridge rule for daily cost collection"
+  value       = aws_cloudwatch_event_rule.daily_cost_collection.name
+}
